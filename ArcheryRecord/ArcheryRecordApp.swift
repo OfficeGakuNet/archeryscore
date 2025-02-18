@@ -8,16 +8,15 @@
 import SwiftUI
 
 @main
-struct ArcheryScoreApp: App {
+struct ArcheryApp: App {
     let persistenceController = PersistenceController.shared
-    
+
     var body: some Scene {
         WindowGroup {
-            ScoreInputView()
-                .environment(\.managedObjectContext, persistenceController.context)
+            ScoreInputView()  // ✅ 初期画面を `ScoreInputView` に変更
+                .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .onAppear {
-                    // 初期データを挿入
-//                    SettingsInitializer.insertDefaultSettings(context: persistenceController.container.viewContext)
+//                    SettingsInitializer.resetSettingsData(context: persistenceController.container.viewContext)
                 }
         }
     }

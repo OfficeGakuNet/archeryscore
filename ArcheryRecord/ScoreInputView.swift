@@ -13,11 +13,9 @@ struct ScoreInputView: View {
     @State private var weather = "晴れ"
     @State private var wind = "無風"
     
-    let targetTypes = ["大的", "40cm的", "三つ目的"]
     let scoreOptions = ["X", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1", "M"]
     let weathers = ["晴れ", "曇り", "雨", "風"]
     let winds = ["無風", "弱風", "中風", "強風"]
-    let ranges = ["18m", "30m", "50m", "70m"]
     
     @State private var scores: [[String]] = []
     @State private var showingScoreEntry = false
@@ -134,13 +132,37 @@ struct ScoreInputView: View {
                 Picker("🌪️風", selection: $wind) {
                     ForEach(winds, id: \.self) { Text($0) }
                 }
-                TextField("場所", text: $location)
-                TextField("タイトル（任意）", text: $title)
-                Picker("🎯 距離", selection: $distance) {
-                    ForEach(ranges, id: \.self) { Text($0) }
+                Picker("📍場所", selection: Binding(
+                    get: { location.isEmpty ? defaultSelected(for: 1) : location },
+                    set: { location = $0 }
+                )) {
+                    ForEach(selectableOptions(for: 1), id: \.self) { option in
+                        Text(option).tag(option)
+                    }
                 }
-                Picker("的", selection: $targetType) {
-                    ForEach(targetTypes, id: \.self) { Text($0) }
+                Picker("タイトル", selection: Binding(
+                    get: { title.isEmpty ? defaultSelected(for: 2) : title },
+                    set: { title = $0 }
+                )) {
+                    ForEach(selectableOptions(for: 2), id: \.self) { option in
+                        Text(option).tag(option)
+                    }
+                }
+                Picker("距離", selection: Binding(
+                    get: { distance.isEmpty ? defaultSelected(for: 3) : distance },
+                    set: { distance = $0 }
+                )) {
+                    ForEach(selectableOptions(for: 3), id: \.self) { option in
+                        Text(option).tag(option)
+                    }
+                }
+                Picker("🎯 的", selection: Binding(
+                    get: { targetType.isEmpty ? defaultSelected(for: 4) : targetType },
+                    set: { targetType = $0 }
+                )) {
+                    ForEach(selectableOptions(for: 4), id: \.self) { option in
+                        Text(option).tag(option)
+                    }
                 }
                 TextField("コメント", text: $comment)
             }
@@ -150,13 +172,16 @@ struct ScoreInputView: View {
     private func selectableOptions(for masterID: Int16) -> [String] {
         settings
             .filter { $0.masterID == masterID && $0.no != 0 }
+            .sorted { $0.no < $1.no } // `no` の昇順に並べる
             .compactMap { $0.content }
     }
-
+    
     // ✅ `isSelected == true` の値をデフォルト値にする
     private func defaultSelected(for masterID: Int16) -> String {
         settings
-            .first(where: { $0.masterID == masterID && $0.isSelected })?.content ?? "未選択"
+            .filter { $0.masterID == masterID && $0.isSelected }
+            .sorted { $0.no < $1.no } // `no` の昇順に並べる
+            .first?.content ?? "未選択"
     }
     
     private var scoreInputSection: some View {

@@ -2,20 +2,25 @@ import SwiftUI
 import CoreData
 
 struct SettingsInitializer {
-    static func insertDefaultSettings(context: NSManagedObjectContext) {
-        // 既存データがあるか確認
-        let fetchRequest: NSFetchRequest<Settings> = Settings.fetchRequest()
+    
+    static func resetSettingsData(context: NSManagedObjectContext) {
+        // ✅ 既存の `Settings` データをすべて削除
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = Settings.fetchRequest()
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+
         do {
-            let count = try context.count(for: fetchRequest)
-            if count > 0 {
-                print("✅ 既に初期データが存在するため、挿入をスキップ")
-                return
-            }
+            try context.execute(deleteRequest)
+            try context.save()
+            print("✅ 既存の設定データを削除しました")
         } catch {
-            print("❌ データのチェックに失敗: \(error.localizedDescription)")
+            print("❌ 設定データの削除に失敗: \(error.localizedDescription)")
         }
 
-        // ✅ 初期データの定義
+        // ✅ 新しい初期データを挿入
+        insertNewSettingsData(context: context)
+    }
+
+    static func insertNewSettingsData(context: NSManagedObjectContext) {
         let defaultData: [(Int16, Int16, String, Bool)] = [
             (1, 0, "場所", false),
             (1, 1, "大沼田", true),
@@ -37,7 +42,6 @@ struct SettingsInitializer {
             (4, 3, "三つ目的", false)
         ]
 
-        // ✅ CoreData にデータを挿入
         for (masterID, no, content, isSelected) in defaultData {
             let newItem = Settings(context: context)
             newItem.masterID = masterID
@@ -49,9 +53,9 @@ struct SettingsInitializer {
         // ✅ 保存処理
         do {
             try context.save()
-            print("✅ 初期データの挿入が完了しました")
+            print("✅ 新しい初期データを挿入しました")
         } catch {
-            print("❌ データの挿入に失敗: \(error.localizedDescription)")
+            print("❌ 新しい設定データの挿入に失敗: \(error.localizedDescription)")
         }
     }
 }
