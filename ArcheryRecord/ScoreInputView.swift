@@ -7,9 +7,9 @@ struct ScoreInputView: View {
     @State private var date = Date()
     @State private var location = ""
     @State private var title = ""
+    @State private var distance = ""
+    @State private var targetType = ""
     @State private var comment = ""
-    @State private var distance = "18m"
-    @State private var targetType = "大的"
     @State private var weather = "晴れ"
     @State private var wind = "無風"
     
@@ -63,7 +63,7 @@ struct ScoreInputView: View {
     }
     
     func calculateAverageScore() -> Double {
-        let totalSets = scores.count * shotCount()
+        let totalSets = scores.flatMap { $0 }.count
         return totalSets > 0 ? Double(calculateTotalScore()) / Double(totalSets) : 0.0
     }
     
@@ -91,6 +91,9 @@ struct ScoreInputView: View {
             print("Failed to save score: \(error.localizedDescription)")
         }
     }
+    
+    @FetchRequest(entity: Settings.entity(), sortDescriptors: [])
+    private var settings: FetchedResults<Settings>
     
     var body: some View {
         NavigationStack {
@@ -142,6 +145,18 @@ struct ScoreInputView: View {
                 TextField("コメント", text: $comment)
             }
         }
+    }
+    
+    private func selectableOptions(for masterID: Int16) -> [String] {
+        settings
+            .filter { $0.masterID == masterID && $0.no != 0 }
+            .compactMap { $0.content }
+    }
+
+    // ✅ `isSelected == true` の値をデフォルト値にする
+    private func defaultSelected(for masterID: Int16) -> String {
+        settings
+            .first(where: { $0.masterID == masterID && $0.isSelected })?.content ?? "未選択"
     }
     
     private var scoreInputSection: some View {
