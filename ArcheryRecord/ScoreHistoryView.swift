@@ -99,10 +99,11 @@ struct ScoreHistoryView: View {
                                 Text("📅 日付: \(score.date ?? Date(), formatter: dateFormatter)")
                                     .font(.headline)
                                 Text("📍 場所: \(score.location ?? "不明な場所")")
-                                Text("🎯 距離: \(score.distance ?? "0")")
-                                Text("的の種類: \(score.targetType ?? "不明")")
+                                Text("📋 タイトル: \(score.title ?? "")")
+                                Text("🔁 距離: \(score.distance ?? "0")")
+                                Text("🎯 的: \(score.targetType ?? "不明")")
                                 Text("🏹 エンド: \(calculateEnds(score: score))")
-                                Text("🔢 合計スコア: \(score.totalScore)")
+                                Text("🔢 合計: \(score.totalScore)")
                                 if let comment = score.comment, !comment.isEmpty {
                                     Text("📝 コメント: \(comment)") // ✅ コメント表示
                                 }

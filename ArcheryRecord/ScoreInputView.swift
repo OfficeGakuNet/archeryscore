@@ -53,7 +53,8 @@ struct ScoreInputView: View {
     
     func updateScores() {
         let shotCount = shotCount()
-        scores = Array(repeating: Array(repeating: "M", count: shotCount), count: shotCount)
+//        scores = Array(repeating: Array(repeating: "M", count: shotCount), count: shotCount)
+        scores = [Array(repeating: "M", count: shotCount)]
     }
     
     func calculateTotalScore() -> Int {
@@ -104,6 +105,20 @@ struct ScoreInputView: View {
                     }
                 }
             }
+            .onAppear {
+                if location.isEmpty {
+                    location = defaultSelected(for: 1) // 場所のデフォルト値
+                }
+                if title.isEmpty {
+                    title = defaultSelected(for: 2) // 場所のデフォルト値
+                }
+                if distance.isEmpty {
+                    distance = defaultSelected(for: 3) // 距離のデフォルト値
+                }
+                if targetType.isEmpty {
+                    targetType = defaultSelected(for: 4) // 的のデフォルト値
+                }
+            }
             .navigationTitle("アーチェリー スコア入力")
             .toolbar { bottomToolbar }
         }
@@ -140,7 +155,7 @@ struct ScoreInputView: View {
                         Text(option).tag(option)
                     }
                 }
-                Picker("タイトル", selection: Binding(
+                Picker("📋 タイトル", selection: Binding(
                     get: { title.isEmpty ? defaultSelected(for: 2) : title },
                     set: { title = $0 }
                 )) {
@@ -148,7 +163,7 @@ struct ScoreInputView: View {
                         Text(option).tag(option)
                     }
                 }
-                Picker("距離", selection: Binding(
+                Picker("🔁 距離", selection: Binding(
                     get: { distance.isEmpty ? defaultSelected(for: 3) : distance },
                     set: { distance = $0 }
                 )) {
