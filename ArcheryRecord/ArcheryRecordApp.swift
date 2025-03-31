@@ -16,7 +16,7 @@ struct ArcheryApp: App {
             ScoreInputView()  // ✅ 初期画面を `ScoreInputView` に変更
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .onAppear {
-//                    SettingsInitializer.resetSettingsData(context: persistenceController.container.viewContext)
+                    SettingsInitializer.resetSettingsData(context: persistenceController.container.viewContext)
                 }
         }
     }

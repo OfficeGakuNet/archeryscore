@@ -122,6 +122,7 @@ struct ScoreInputView: View {
             .navigationTitle("アーチェリー スコア入力")
             .toolbar { bottomToolbar }
         }
+        .accentColor(.blue)
     }
     
     private var basicInfoSection: some View {
@@ -244,6 +245,7 @@ struct ScoreInputView: View {
                     Text("設定")
                 }
             }
+            .accentColor(.blue)
         }
     }
 }

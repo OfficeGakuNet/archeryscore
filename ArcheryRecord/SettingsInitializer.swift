@@ -23,13 +23,8 @@ struct SettingsInitializer {
     static func insertNewSettingsData(context: NSManagedObjectContext) {
         let defaultData: [(Int16, Int16, String, Bool)] = [
             (1, 0, "場所", false),
-            (1, 1, "大沼田", true),
-            (1, 2, "プラザ", false),
-            (1, 3, "ふれあい", false),
-            (1, 4, "渋谷", false),
             (2, 0, "タイトル", false),
             (2, 1, "練習", true),
-            (2, 2, "記録会", false),
             (3, 0, "距離", false),
             (3, 1, "18m", false),
             (3, 2, "30m", true),
