@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 @main
 struct ArcheryApp: App {
@@ -16,8 +17,22 @@ struct ArcheryApp: App {
             ScoreInputView()  // ✅ 初期画面を `ScoreInputView` に変更
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .onAppear {
-                    SettingsInitializer.resetSettingsData(context: persistenceController.container.viewContext)
+                    initializeSettingsIfNeeded(context: persistenceController.container.viewContext)
                 }
         }
     }
+    
+    private func initializeSettingsIfNeeded(context: NSManagedObjectContext) {
+        let key = "isSettingsInitialized"
+        let defaults = UserDefaults.standard
+
+        if !defaults.bool(forKey: key) {
+            SettingsInitializer.resetSettingsData(context: context)
+            defaults.set(true, forKey: key)
+            print("✅ Settings 初期化済み（1度だけ）")
+        } else {
+            print("ℹ️ Settings はすでに初期化済みです")
+        }
+    }
 }
+

@@ -142,44 +142,55 @@ struct ScoreInputView: View {
                 DatePicker("📅 日付", selection: $date, displayedComponents: .date)
                     .datePickerStyle(CompactDatePickerStyle())
                     .environment(\.locale, Locale(identifier: "ja_JP"))
+
                 Picker("☀️天候", selection: $weather) {
-                    ForEach(weathers, id: \.self) { Text($0) }
+                    ForEach(weathers.enumerated().map { $0 }, id: \.offset) { _, option in
+                        Text(option).tag(option)
+                    }
                 }
+
                 Picker("🌪️風", selection: $wind) {
-                    ForEach(winds, id: \.self) { Text($0) }
+                    ForEach(winds.enumerated().map { $0 }, id: \.offset) { _, option in
+                        Text(option).tag(option)
+                    }
                 }
+
                 Picker("📍場所", selection: Binding(
                     get: { location.isEmpty ? defaultSelected(for: 1) : location },
                     set: { location = $0 }
                 )) {
-                    ForEach(selectableOptions(for: 1), id: \.self) { option in
+                    ForEach(selectableOptions(for: 1).enumerated().map { $0 }, id: \.offset) { _, option in
                         Text(option).tag(option)
                     }
                 }
+
                 Picker("📋 タイトル", selection: Binding(
                     get: { title.isEmpty ? defaultSelected(for: 2) : title },
                     set: { title = $0 }
                 )) {
-                    ForEach(selectableOptions(for: 2), id: \.self) { option in
+                    ForEach(selectableOptions(for: 2).enumerated().map { $0 }, id: \.offset) { _, option in
                         Text(option).tag(option)
                     }
                 }
+
                 Picker("🔁 距離", selection: Binding(
                     get: { distance.isEmpty ? defaultSelected(for: 3) : distance },
                     set: { distance = $0 }
                 )) {
-                    ForEach(selectableOptions(for: 3), id: \.self) { option in
+                    ForEach(selectableOptions(for: 3).enumerated().map { $0 }, id: \.offset) { _, option in
                         Text(option).tag(option)
                     }
                 }
+
                 Picker("🎯 的", selection: Binding(
                     get: { targetType.isEmpty ? defaultSelected(for: 4) : targetType },
                     set: { targetType = $0 }
                 )) {
-                    ForEach(selectableOptions(for: 4), id: \.self) { option in
+                    ForEach(selectableOptions(for: 4).enumerated().map { $0 }, id: \.offset) { _, option in
                         Text(option).tag(option)
                     }
                 }
+
                 TextField("コメント", text: $comment)
             }
         }
