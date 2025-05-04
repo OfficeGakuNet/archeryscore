@@ -237,6 +237,14 @@ struct ScoreInputView: View {
                     print("Saving score...")
                     saveScore()
                     scores.removeAll()
+                    location = ""
+                    title = ""
+                    distance = ""
+                    targetType = ""
+                    comment = ""
+                    weather = "晴れ"
+                    wind = "無風"
+                    date = Date()
                 }
                 .buttonStyle(.borderedProminent)
             }

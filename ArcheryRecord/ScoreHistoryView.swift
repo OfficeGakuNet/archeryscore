@@ -99,22 +99,28 @@ struct ScoreHistoryView: View {
                                 Text("📅 日付: \(score.date ?? Date(), formatter: dateFormatter)")
                                     .font(.headline)
                                 Text("📍 場所: \(score.location ?? "不明な場所")")
-                                Text("📋 タイトル: \(score.title ?? "")")
-                                Text("🔁 距離: \(score.distance ?? "0")")
-                                Text("🎯 的: \(score.targetType ?? "不明")")
-                                Text("🏹 エンド: \(calculateEnds(score: score))")
-                                Text("🔢 合計: \(score.totalScore)")
-                                if let comment = score.comment, !comment.isEmpty {
-                                    Text("📝 コメント: \(comment)") // ✅ コメント表示
-                                }
+                                Text("🔢 得点: \(score.totalScore)（平均: \(calculateAverage(score: score), specifier: "%.2f")）")
                             }
                             .padding()
                         }
                     }
-                    .onDelete(perform: deleteScore) // ✅ スワイプ削除機能を追加
+                    .onDelete(perform: deleteScore)
                 }
             }
         }
+    }
+    
+    /// ** 平均の計算**
+    private func calculateAverage(score: Score) -> Double {
+        let scoreArray = score.scores?.split(separator: ",").map { String($0) } ?? []
+        let total = scoreArray.reduce(0) { sum, val in
+            switch val {
+            case "X": return sum + 10
+            case "M": return sum + 0
+            default: return sum + (Int(val) ?? 0)
+            }
+        }
+        return scoreArray.isEmpty ? 0.0 : Double(total) / Double(scoreArray.count)
     }
     
     /// **エンドの計算**

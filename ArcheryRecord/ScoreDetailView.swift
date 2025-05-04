@@ -10,26 +10,25 @@ struct ScoreDetailView: View {
         formatter.dateFormat = "yyyy/MM/dd"
         return formatter
     }()
-    
-    // 1エンドの矢の本数（大的なら6、それ以外は3）
+
     var shotsPerEnd: Int {
         return score.targetType == "大的" ? 6 : 3
     }
 
-    // スコアをエンドごとに分割
     var splitScores: [[String]] {
         guard let scores = score.scores?.split(separator: ",").map({ String($0) }) else { return [] }
-        return stride(from: 0, to: scores.count, by: shotsPerEnd).map { Array(scores[$0..<min($0+shotsPerEnd, scores.count)]) }
+        return stride(from: 0, to: scores.count, by: shotsPerEnd).map {
+            Array(scores[$0..<min($0+shotsPerEnd, scores.count)])
+        }
     }
 
-    // 各得点ごとの集計
     var scoreCounts: [String: Int] {
         var counts = Dictionary(uniqueKeysWithValues: scoreOptions.map { ($0, 0) })
         guard let scores = score.scores?.split(separator: ",").map({ String($0) }) else { return counts }
-        
-        for score in scores {
-            if counts[score] != nil {
-                counts[score]! += 1
+
+        for s in scores {
+            if counts[s] != nil {
+                counts[s]! += 1
             }
         }
         return counts
@@ -47,49 +46,74 @@ struct ScoreDetailView: View {
         return splitScores.map { row in row.reduce(0) { $0 + scoreValue($1) } }
     }
 
-    // アベレージ計算 (合計スコア ÷ 総射数)
     var averageScore: Double {
         let totalShots = splitScores.flatMap { $0 }.count
         return totalShots > 0 ? Double(score.totalScore) / Double(totalShots) : 0.0
     }
 
     var body: some View {
-        VStack {
-            // ✅ 日付を追加
-            Text("📅 日付: \(score.date ?? Date(), formatter: dateFormatter)")
-                .font(.headline)
-                .padding(.bottom, 5)
-            Text("🎯 距離: \(score.distance ?? "不明")")
-            Text("的の種類: \(score.targetType ?? "不明")")
-
-            // **合計スコア + アベレージ表示**
-            Text("🔢 合計スコア: \(score.totalScore) (\(String(format: "%.2f", averageScore)))")
-                .font(.headline)
-                .foregroundColor(.blue)
-
-            // エンドごとのスコア
-            List {
-                ForEach(splitScores.indices, id: \.self) { index in
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("エンド \(index + 1)")
-                            .font(.headline)
-                        Text("スコア: \(splitScores[index].joined(separator: ", "))")
-                        Text("小計: \(subtotalScores[index])")
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                    }
-                    .padding(.vertical, 5)
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            // 基本情報（固定）
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 6) {
+                Text("📅 : \(score.date ?? Date(), formatter: dateFormatter)")
+                Text("📍 : \(score.location ?? "不明")")
+                Text("📋 : \(score.title ?? "未設定")")
+                Text("🔁 : \(score.distance ?? "不明")")
+                Text("🎯 : \(score.targetType ?? "不明")")
+                Text("☀️ : \(score.weather ?? "不明")")
+                Text("🌪️ : \(score.wind ?? "不明")")
+                Text("🏹 : \(splitScores.count)")
+                Text("📢 : \(score.totalScore)（\(String(format: "%.2f", averageScore))）")
             }
 
-            // 各得点ごとの集計
+            // コメント（全幅）
+            if let comment = score.comment, !comment.isEmpty {
+                Text("📝 : \(comment)")
+                    .padding(.top, 5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            // スクロール可能なエンド一覧（中央）
+            ScrollView {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("エンドごとのスコア")
+                        .font(.headline)
+                    ForEach(splitScores.indices, id: \ .self) { index in
+                        HStack {
+                            Text("\(index + 1):")
+                                .bold()
+                                .monospacedDigit()
+                                .frame(minWidth: 40, alignment: .leading)
+
+                            HStack(spacing: 16) {
+                                ForEach(splitScores[index], id: \ .self) { score in
+                                    Text(score)
+                                        .frame(width: 22, alignment: .center)
+                                }
+                            }
+
+                            Spacer()
+
+                            Text("(\(subtotalScores[index]))")
+                                .foregroundColor(.blue)
+                                .frame(alignment: .trailing)
+                        }
+                        .padding(.vertical, 6)
+                        .padding(.horizontal)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue.opacity(0.05))
+                        .cornerRadius(8)
+                    }
+                }
+                .padding(.top, 10)
+            }
+
+            // 得点分布（固定）
             VStack(alignment: .leading) {
                 Text("得点分布")
                     .font(.headline)
-                    .padding(.top, 10)
-
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
-                    ForEach(scoreOptions, id: \.self) { score in
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                    ForEach(scoreOptions, id: \ .self) { score in
                         if let count = scoreCounts[score], count > 0 {
                             Text("\(score): \(count)")
                                 .padding(6)
@@ -98,10 +122,10 @@ struct ScoreDetailView: View {
                         }
                     }
                 }
-                .padding(.top, 5)
             }
-            .padding()
+            .padding(.top, 10)
         }
+        .padding()
         .navigationTitle("スコア詳細")
     }
 }
