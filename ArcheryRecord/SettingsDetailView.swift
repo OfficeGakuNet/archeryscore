@@ -1,8 +1,10 @@
+// SettingsDetailView.swift
 import SwiftUI
 import CoreData
 
 struct SettingsDetailView: View {
     @Environment(\.managedObjectContext) private var viewContext
+
     @FetchRequest private var settings: FetchedResults<Settings>
 
     let masterID: Int16
@@ -14,35 +16,43 @@ struct SettingsDetailView: View {
     init(masterID: Int16, title: String) {
         self.masterID = masterID
         self.title = title
-
-        // ✅ `masterID` に基づいたデータ取得 (`no=0` を除外)
         _settings = FetchRequest(
             entity: Settings.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \Settings.no, ascending: true)],
-            predicate: NSPredicate(format: "masterID == %d", masterID) // ← `masterID` のデータを全取得
+            predicate: NSPredicate(format: "masterID == %d", masterID)
         )
+    }
+
+    // ※ 見出し(no == 0) を除外した配列
+    private var listItems: [Settings] {
+        settings.filter { $0.no != 0 }
     }
 
     var body: some View {
         List {
-            ForEach(settings.filter { $0.no != 0 }, id: \.objectID) { item in // ← `no=0` だけをここで除外
+            ForEach(listItems, id: \.objectID) { item in
                 HStack {
                     Text(item.content ?? "不明")
                     Spacer()
                     if item.isSelected {
-                        Image(systemName: "checkmark")
-                            .foregroundColor(.blue) // ✅ 選択された項目にチェックマークを表示
+                        Image(systemName: "checkmark").foregroundColor(.blue)
                     }
                 }
-                .contentShape(Rectangle()) // ✅ タップ範囲を広げる
-                .onTapGesture {
-                    updateSelection(for: item)
+                .contentShape(Rectangle())
+                .onTapGesture { updateSelection(for: item) }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        delete(item: item)
+                    } label: {
+                        Label("削除", systemImage: "trash")
+                    }
                 }
             }
-            .onDelete(perform: deleteItem)
+            .onDelete(perform: deleteItems)
 
-            // ✅ 新規追加ボタン
-            Button(action: { showAddContentAlert = true }) {
+            Button {
+                showAddContentAlert = true
+            } label: {
                 HStack {
                     Image(systemName: "plus.circle.fill")
                     Text("新規追加")
@@ -52,13 +62,12 @@ struct SettingsDetailView: View {
             .alert("新規追加", isPresented: $showAddContentAlert) {
                 TextField("内容", text: $newContent)
                 Button("追加", action: addContent)
-                Button("キャンセル", role: .cancel) {}
+                Button("キャンセル", role: .cancel) { }
             }
         }
-        .navigationTitle(title) // ✅ 画面のタイトルに `title` を表示
+        .navigationTitle(title)
     }
 
-    // ✅ `masterID` 内で `1 つのみ isSelected` にする
     private func updateSelection(for selectedItem: Settings) {
         for item in settings where item.masterID == selectedItem.masterID {
             item.isSelected = (item == selectedItem)
@@ -66,35 +75,31 @@ struct SettingsDetailView: View {
         saveContext()
     }
 
-    // ✅ 新しいコンテンツを追加
     private func addContent() {
         guard !newContent.isEmpty else { return }
-
         let newEntry = Settings(context: viewContext)
         newEntry.masterID = masterID
         newEntry.no = (settings.map { $0.no }.max() ?? 0) + 1
         newEntry.content = newContent
-        newEntry.isSelected = settings.isEmpty  // 最初の項目なら選択状態にする
-
+        newEntry.isSelected = settings.isEmpty
         saveContext()
         newContent = ""
     }
 
-    // ✅ 設定の削除
-    private func deleteItem(at offsets: IndexSet) {
-        for index in offsets {
-            viewContext.delete(settings[index])
-        }
+    // swipeActions から呼ぶ単一削除
+    private func delete(item: Settings) {
+        viewContext.delete(item)
         saveContext()
     }
 
-    // ✅ CoreData の保存処理
+    // .onDelete 用（複数行対応）
+    private func deleteItems(at offsets: IndexSet) {
+        offsets.map { listItems[$0] }
+               .forEach(viewContext.delete)
+        saveContext()
+    }
+
     private func saveContext() {
-        do {
-            try viewContext.save()
-            print("✅ 設定を保存しました")
-        } catch {
-            print("❌ 保存エラー: \(error.localizedDescription)")
-        }
+        try? viewContext.save()
     }
 }
